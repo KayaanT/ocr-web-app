@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR Web App</title>
+    <!-- Add this style block in the head section of your HTML -->
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #2c3e50; /* Dark background color */
+            color: #ecf0f1; /* Light text color */
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+
+        h1 {
+            color: #3498db; /* Highlight color */
+            margin-bottom: 20px;
+        }
+
+        #uploadForm {
+            margin: 20px;
+        }
+
+        button {
+            background-color: #3498db; /* Highlight color */
+            color: #ecf0f1; /* Light text color */
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .custom-file-upload {
+            border: 1px solid #2980b9; /* Accent color */
+            padding: 10px 15px;
+            border-radius: 5px;
+            background-color: #2980b9; /* Accent color */
+            cursor: pointer;
+            display: inline-block;
+            color: #ecf0f1; /* Light text color */
+        }
+
+        #result {
+            margin: 20px;
+        }
+
+        #displayText {
+            font-size: 18px;
+            color: #ecf0f1; /* Light text color */
+        }
+
+        #resultImage {
+            margin-top: 20px;
+            max-width: 100%;
+            display: none; /* Hide initially */
+        }
+
+        #loadingIndicator {
+            display: none;
+            margin-top: 20px;
+            color: #3498db; /* Highlight color */
+        }
+    </style>
+</head>
+<body>
+    <h1>OCR Web App</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <label for="file" class="custom-file-upload" onclick="document.getElementById('fileInput').click();">Browse</label>
+        <input type="file" name="file" id="fileInput" accept="image/*" required>
+        <button type="submit">Process OCR</button>
+    </form>
+    
+    <div id="result">
+        <p id="displayText"></p>
+        <img id="resultImage" alt="Result">
+        <div id="loadingIndicator">Processing...</div>
+    </div>
+    
+    <script>
+        document.getElementById('fileInput').addEventListener('change', function() {
+            // Hide the result section when a new file is selected
+            document.getElementById('result').style.display = 'none';
+        });
+    
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+    
+            var formData = new FormData(this);
+    
+            // Show loading indicator
+            document.getElementById('loadingIndicator').style.display = 'block';
+    
+            fetch('http://127.0.0.1:5000/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Received Data:', data);
+    
+                // Hide loading indicator
+                document.getElementById('loadingIndicator').style.display = 'none';
+    
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    // Display the result section
+                    document.getElementById('result').style.display = 'block';
+    
+                    // Update the display text and image
+                    document.getElementById('displayText').innerText = 'Text Output: ' + data.text;
+                    document.getElementById('resultImage').src = 'data:image/jpeg;base64,' + data.img_base64;
+                    document.getElementById('resultImage').style.display = 'block'; // Show the image
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Hide loading indicator on error
+                document.getElementById('loadingIndicator').style.display = 'none';
+            });
+        });
+    </script>
+</body>
+</html>
